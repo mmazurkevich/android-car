@@ -1,8 +1,16 @@
 package com.infinity.bluetooth.bluetooth;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,8 +21,16 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.Set;
+import java.util.UUID;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private int REQUEST_ENABLE_BT = 5;
+    private static final String TAG = "MainActivity";
+    //bluetooth configuration
+    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +56,69 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
+        //check that device doesn't support bluetooth
+        if (bluetoothAdapter != null) {
+            Log.i(TAG, "Device supported Bluetooth, try to enable it");
+            //check that it is enabled
+            if (!bluetoothAdapter.isEnabled()) {
+                //intent for BT activation callback to onActivityResult()
+                Log.i(TAG, "Sending intent to the user on enabling bluetooth");
+                Intent intentBtEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(intentBtEnable, REQUEST_ENABLE_BT);
+            }else {
+                Log.i(TAG, "Bluetooth already enabled");
+                getPairedDevices();
+            }
+        }
     }
+
+    private void getPairedDevices(){
+        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            // There are paired devices. Get the name and address of each paired device.
+            for (BluetoothDevice device : pairedDevices) {
+                String deviceName = device.getName();
+                String deviceHardwareAddress = device.getAddress(); // MAC address
+                Log.i(TAG, "Paired device name: "+deviceName+"  mac: "+deviceHardwareAddress);
+
+                // Register for broadcasts when a device is discovered.
+                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                registerReceiver(mReceiver, filter);
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (requestCode == Activity.RESULT_OK) {
+                Log.i(TAG, "User pressed OK button on enabling bluetooth intent");
+                getPairedDevices();
+            }
+            if (requestCode == Activity.RESULT_CANCELED) {
+                Log.i(TAG, "User pressed CANCEL button on enabling bluetooth intent");
+            }
+        }
+    }
+
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                // Discovery has found a device. Get the BluetoothDevice
+                // object and its info from the Intent.
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                String deviceName = device.getName();
+                String deviceHardwareAddress = device.getAddress(); // MAC address
+                device.createRfcommSocketToServiceRecord(UUID.randomUUID());
+                Log.i(TAG, "Paired device name: "+deviceName+"  mac: "+deviceHardwareAddress);
+            }
+        }
+    };
 
     @Override
     public void onBackPressed() {
@@ -97,5 +175,12 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Don't forget to unregister the ACTION_FOUND receiver.
+        unregisterReceiver(mReceiver);
     }
 }
