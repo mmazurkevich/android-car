@@ -20,7 +20,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,6 +36,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = "MainActivity";
     //bluetooth configuration
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private BTDeviceArrayAdapter deviceAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +62,10 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
+        enablingBtAdapter();
+        ListView deviceList = (ListView) findViewById(R.id.device_list);
+        deviceAdapter = new BTDeviceArrayAdapter(this, new ArrayList<BluetoothDevice>());
+        deviceList.setAdapter(deviceAdapter);
     }
 
     private void enablingBtAdapter(){
@@ -82,6 +90,9 @@ public class MainActivity extends AppCompatActivity
         if (pairedDevices.size() > 0) {
             // There are paired devices. Get the name and address of each paired device.
             for (BluetoothDevice device : pairedDevices) {
+                deviceAdapter.add(device);
+                //not needed notifyDataSetChanged() inside the add
+//                deviceAdapter.notifyDataSetChanged();
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress(); // MAC address
                 Log.i(TAG, "Paired device name: " + deviceName + "  mac: " + deviceHardwareAddress);
@@ -106,6 +117,7 @@ public class MainActivity extends AppCompatActivity
                 // Discovery has found a device. Get the BluetoothDevice
                 // object and its info from the Intent.
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                deviceAdapter.add(device);
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress(); // MAC address
 //                device.createRfcommSocketToServiceRecord(UUID.randomUUID());
