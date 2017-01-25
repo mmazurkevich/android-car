@@ -1,10 +1,12 @@
 package com.infinity.bluetooth.bluetooth;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.UUID;
 
 
 /**
@@ -15,7 +17,7 @@ public class ConnectThread extends Thread{
     private final BluetoothSocket mmSocket;
     private final BluetoothDevice mmDevice;
     public static final String TAG = "ConnectThread";
-
+    private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     public ConnectThread(BluetoothDevice device) {
         // Use a temporary object that is later assigned to mmSocket
         // because mmSocket is final.
@@ -25,7 +27,7 @@ public class ConnectThread extends Thread{
         try {
             // Get a BluetoothSocket to connect with the given BluetoothDevice.
             // MY_UUID is the app's UUID string, also used in the server code.
-            tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+            tmp = device.createRfcommSocketToServiceRecord(UUID.randomUUID());
         } catch (IOException e) {
             Log.e(TAG, "Socket's create() method failed", e);
         }
@@ -52,7 +54,7 @@ public class ConnectThread extends Thread{
 
         // The connection attempt succeeded. Perform work associated with
         // the connection in a separate thread.
-        manageMyConnectedSocket(mmSocket);
+//        manageMyConnectedSocket(mmSocket);
     }
 
     // Closes the client socket and causes the thread to finish.
