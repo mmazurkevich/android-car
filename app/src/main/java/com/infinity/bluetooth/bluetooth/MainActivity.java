@@ -22,6 +22,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
+import com.infinity.bluetooth.bluetooth.events.ListViewClickListenerEvent;
+import com.infinity.bluetooth.bluetooth.views.adapters.BluetoothDeviceAdapter;
+
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -33,7 +36,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = "MainActivity";
     //bluetooth configuration
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    private BTDeviceArrayAdapter deviceAdapter;
+    private BluetoothDeviceAdapter deviceAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,9 +64,9 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         enablingBtAdapter();
         ListView deviceList = (ListView) findViewById(R.id.device_list);
-        deviceAdapter = new BTDeviceArrayAdapter(this, new ArrayList<BluetoothDevice>());
+        deviceAdapter = new BluetoothDeviceAdapter(this, new ArrayList<BluetoothDevice>());
         deviceList.setAdapter(deviceAdapter);
-        deviceList.setOnItemClickListener(new ListViewClickListener());
+        deviceList.setOnItemClickListener(new ListViewClickListenerEvent());
     }
 
     private void enablingBtAdapter(){

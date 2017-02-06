@@ -1,4 +1,4 @@
-package com.infinity.bluetooth.bluetooth;
+package com.infinity.bluetooth.bluetooth.services;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -14,14 +14,14 @@ import java.util.UUID;
  * Created by infinity on 25.01.17.
  */
 
-public class ConnectThread extends Thread{
+public class BluetoothCommunicationService extends Thread{
     private final BluetoothSocket mmSocket;
     private final BluetoothDevice mmDevice;
     private static final UUID MY_UUID_SECURE =
             UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    public static final String TAG = "ConnectThread";
+    public static final String TAG = "BluetoothCommunicationService";
 //    private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    public ConnectThread(BluetoothDevice device) {
+    public BluetoothCommunicationService(BluetoothDevice device) {
         // Use a temporary object that is later assigned to mmSocket
         // because mmSocket is final.
         BluetoothSocket tmp = null;

@@ -1,4 +1,4 @@
-package com.infinity.bluetooth.bluetooth;
+package com.infinity.bluetooth.bluetooth.views.adapters;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -9,18 +9,17 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.infinity.bluetooth.bluetooth.R;
+
 import java.util.List;
 
-/**
- * Created by infinity on 26.01.17.
- */
 
-public class BTDeviceArrayAdapter extends ArrayAdapter<BluetoothDevice> {
+public class BluetoothDeviceAdapter extends ArrayAdapter<BluetoothDevice> {
 
     private Context context;
     private List<BluetoothDevice> deviceList;
 
-    public BTDeviceArrayAdapter(Context context, List<BluetoothDevice> deviceList) {
+    public BluetoothDeviceAdapter(Context context, List<BluetoothDevice> deviceList) {
         super(context, R.layout.row, deviceList);
         this.context = context;
         this.deviceList = deviceList;
