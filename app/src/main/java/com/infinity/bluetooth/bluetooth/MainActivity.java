@@ -3,8 +3,6 @@ package com.infinity.bluetooth.bluetooth;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -22,25 +20,31 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
-import com.infinity.bluetooth.bluetooth.events.ListViewClickListenerEvent;
+import com.infinity.bluetooth.bluetooth.events.DeviceDiscoveryEvent;
+import com.infinity.bluetooth.bluetooth.events.EnableBluetoothEvent;
+import com.infinity.bluetooth.bluetooth.views.listener.ListViewClickListener;
+import com.infinity.bluetooth.bluetooth.events.PairedDevicesEvent;
+import com.infinity.bluetooth.bluetooth.views.receiver.BluetoothBroadcastReceiver;
+import com.infinity.bluetooth.bluetooth.services.BluetoothService;
 import com.infinity.bluetooth.bluetooth.views.adapters.BluetoothDeviceAdapter;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 import java.util.ArrayList;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private int REQUEST_ENABLE_BT = 5;
-    private int REQUEST_ENABLE_DISCOVERABLE = 6;
     private static final String TAG = "MainActivity";
-    //bluetooth configuration
-    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    private BluetoothDeviceAdapter deviceAdapter;
+    private BluetoothBroadcastReceiver broadcastReceiver = new BluetoothBroadcastReceiver();
+    private BluetoothService bluetoothService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -62,77 +66,28 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        enablingBtAdapter();
+
         ListView deviceList = (ListView) findViewById(R.id.device_list);
-        deviceAdapter = new BluetoothDeviceAdapter(this, new ArrayList<BluetoothDevice>());
+        BluetoothDeviceAdapter deviceAdapter = new BluetoothDeviceAdapter(this, new ArrayList<BluetoothDevice>());
         deviceList.setAdapter(deviceAdapter);
-        deviceList.setOnItemClickListener(new ListViewClickListenerEvent());
+        BluetoothApplicationContext.getInstance().setDevicesAdapter(deviceAdapter);
+        deviceList.setOnItemClickListener(new ListViewClickListener());
+        bluetoothService = new BluetoothService();
+        bluetoothService.enablingBluetooth();
     }
 
-    private void enablingBtAdapter(){
-        //check that device doesn't support bluetooth
-        if (bluetoothAdapter != null) {
-            Log.i(TAG, "Device supported Bluetooth, try to enable it");
-            //check that it is enabled
-            if (!bluetoothAdapter.isEnabled()) {
-                //intent for BT activation callback to onActivityResult()
-                Log.i(TAG, "Sending intent to the user on enabling bluetooth");
-                Intent intentBtEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(intentBtEnable, REQUEST_ENABLE_BT);
-            } else {
-                Log.i(TAG, "Bluetooth already enabled");
-                getPairedDevices();
-            }
-        }
+    @Subscribe
+    public void enableBluetooth(EnableBluetoothEvent enableBluetoothEvent){
+        Intent intentBtEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivityForResult(intentBtEnable, REQUEST_ENABLE_BT);
     }
 
-    private void getPairedDevices() {
-        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            // There are paired devices. Get the name and address of each paired device.
-            for (BluetoothDevice device : pairedDevices) {
-                deviceAdapter.add(device);
-                //not needed notifyDataSetChanged() inside the add
-//                deviceAdapter.notifyDataSetChanged();
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-                Log.i(TAG, "Paired device name: " + deviceName + "  mac: " + deviceHardwareAddress);
-
-            }
-        }
-        startDeviceDiscovery();
-    }
-
-    private void startDeviceDiscovery(){
+    @Subscribe
+    public void startDeviceDiscovery(DeviceDiscoveryEvent discoveryEvent){
         // Register for broadcasts when a device is discovered.
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mReceiver, filter);
-        bluetoothAdapter.startDiscovery();
-    }
-
-    // Create a BroadcastReceiver for ACTION_FOUND.
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                // Discovery has found a device. Get the BluetoothDevice
-                // object and its info from the Intent.
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                deviceAdapter.add(device);
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-//                device.createRfcommSocketToServiceRecord(UUID.randomUUID());
-                Log.i(TAG, "Founded nearest device name: " + deviceName + "  mac: " + deviceHardwareAddress);
-            }
-        }
-    };
-
-    private void setDeviceDiscoverable(){
-        //snippet sets the device to be discoverable for 5 minutes (300 seconds)
-        //available for search
-        Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-        startActivityForResult(discoverableIntent, REQUEST_ENABLE_DISCOVERABLE);
+        registerReceiver(broadcastReceiver, filter);
+        BluetoothApplicationContext.getInstance().getBluetoothAdapter().startDiscovery();
     }
 
     @Override
@@ -141,7 +96,7 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == REQUEST_ENABLE_BT) {
             if (resultCode == Activity.RESULT_OK) {
                 Log.i(TAG, "User pressed OK button on enabling bluetooth intent");
-                getPairedDevices();
+                EventBus.getDefault().post(new PairedDevicesEvent());
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 Log.i(TAG, "User pressed CANCEL button on enabling bluetooth intent");
@@ -209,7 +164,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Don't forget to unregister the ACTION_FOUND receiver.
-        unregisterReceiver(mReceiver);
+        unregisterReceiver(broadcastReceiver);
+        EventBus.getDefault().unregister(this);
     }
+
 }
