@@ -1,14 +1,14 @@
 package com.infinity.bluetooth.bluetooth;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -17,21 +17,15 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ListView;
 
 import com.infinity.bluetooth.bluetooth.events.DeviceDiscoveryEvent;
 import com.infinity.bluetooth.bluetooth.events.EnableBluetoothEvent;
-import com.infinity.bluetooth.bluetooth.views.listener.ListViewClickListener;
 import com.infinity.bluetooth.bluetooth.events.PairedDevicesEvent;
+import com.infinity.bluetooth.bluetooth.views.fragments.MainFragment;
 import com.infinity.bluetooth.bluetooth.views.receiver.BluetoothBroadcastReceiver;
-import com.infinity.bluetooth.bluetooth.services.BluetoothService;
-import com.infinity.bluetooth.bluetooth.views.adapters.BluetoothDeviceAdapter;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -39,7 +33,7 @@ public class MainActivity extends AppCompatActivity
     private int REQUEST_ENABLE_BT = 5;
     private static final String TAG = "MainActivity";
     private BluetoothBroadcastReceiver broadcastReceiver = new BluetoothBroadcastReceiver();
-    private BluetoothService bluetoothService;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,31 +43,20 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        ListView deviceList = (ListView) findViewById(R.id.device_list);
-        BluetoothDeviceAdapter deviceAdapter = new BluetoothDeviceAdapter(this, new ArrayList<BluetoothDevice>());
-        deviceList.setAdapter(deviceAdapter);
-        BluetoothApplicationContext.getInstance().setDevicesAdapter(deviceAdapter);
-        deviceList.setOnItemClickListener(new ListViewClickListener());
-        bluetoothService = new BluetoothService();
-        bluetoothService.enablingBluetooth();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        MainFragment mainFragment = new MainFragment();
+        fragmentTransaction.add(R.id.fragment_container, mainFragment, "MAIN_FRAGMENT");
+        fragmentTransaction.commit();
     }
 
     @Subscribe

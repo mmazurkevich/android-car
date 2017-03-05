@@ -6,9 +6,11 @@ import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import com.infinity.bluetooth.bluetooth.BluetoothApplicationContext;
+import com.infinity.bluetooth.bluetooth.events.CloseConnectionEvent;
 import com.infinity.bluetooth.bluetooth.events.DeviceDiscoveryEvent;
 import com.infinity.bluetooth.bluetooth.events.EnableBluetoothEvent;
 import com.infinity.bluetooth.bluetooth.events.PairedDevicesEvent;
+import com.infinity.bluetooth.bluetooth.events.SendMessageEvent;
 import com.infinity.bluetooth.bluetooth.views.adapters.BluetoothDeviceAdapter;
 
 import org.greenrobot.eventbus.EventBus;
@@ -44,12 +46,39 @@ public class BluetoothService {
                 EventBus.getDefault().post(new EnableBluetoothEvent());
             } else {
                 Log.i(TAG, "Bluetooth already enabled");
-                getPairedDevices();
+                EventBus.getDefault().post(new PairedDevicesEvent());
             }
         }
     }
 
-    public void getPairedDevices() {
+    @Subscribe
+    public void sendingEvent(SendMessageEvent messageEvent){
+        OutputStream outputStream;
+        try {
+            outputStream = applicationContext.getBluetoothSocket().getOutputStream();
+            outputStream.write(messageEvent.getMessage().getBytes());
+        } catch (IOException connectException) {
+            EventBus.getDefault().post(new CloseConnectionEvent());
+        }
+        String deviceName = applicationContext.getCurrentDevice().getName();
+        Log.i(TAG, "Sending message to device:" + deviceName);
+    }
+
+    @Subscribe
+    public void closeConnectEvent(CloseConnectionEvent closeConnectionEvent){
+        try {
+            OutputStream outputStream = applicationContext.getBluetoothSocket().getOutputStream();
+            outputStream.close();
+            applicationContext.getBluetoothSocket().close();
+        } catch (IOException closeException) {
+            Log.e(TAG, "Could not close the client socket", closeException);
+        }
+        String deviceName = applicationContext.getCurrentDevice().getName();
+        Log.i(TAG, "Connection to device:" + deviceName + " closed");
+    }
+
+    @Subscribe
+    public void pairedDevicesEvent(PairedDevicesEvent devicesEvent){
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
@@ -60,35 +89,6 @@ public class BluetoothService {
             }
         }
         EventBus.getDefault().post(new DeviceDiscoveryEvent());
-    }
-
-    public void sendMessage(){
-        BluetoothSocket bluetoothSocket = applicationContext.getBluetoothSocket();
-        OutputStream outputStream = null;
-        try {
-            outputStream = bluetoothSocket.getOutputStream();
-            String str = "C";
-            outputStream.write(str.getBytes());
-            str = "0";
-            outputStream.write(str.getBytes());
-        } catch (IOException connectException) {
-            closeConnect(outputStream);
-        }finally {
-            closeConnect(outputStream);
-        }
-    }
-
-    private void closeConnect(OutputStream outputStream) {
-        try {
-            outputStream.close();
-        } catch (IOException closeException) {
-            Log.e(TAG, "Could not close the client socket", closeException);
-        }
-    }
-
-    @Subscribe
-    public void pairedDevicesEvent(PairedDevicesEvent devicesEvent){
-        getPairedDevices();
     }
 
     @Override

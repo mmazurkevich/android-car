@@ -19,13 +19,15 @@ public class BluetoothDeviceConnector extends Thread{
     private BluetoothSocket bluetoothSocket;
 
     public BluetoothDeviceConnector(BluetoothDevice device) {
+
         bluetoothAdapter = BluetoothApplicationContext.getInstance().getBluetoothAdapter();
         try {
             bluetoothSocket = device.createRfcommSocketToServiceRecord(BluetoothApplicationContext
                     .getInstance().getBluetoothUUID());
             BluetoothApplicationContext.getInstance().setBluetoothSocket(bluetoothSocket);
+            BluetoothApplicationContext.getInstance().setCurrentDevice(device);
         } catch (IOException e) {
-            Log.e(TAG, "Socket's create() method failed", e);
+            Log.e(TAG, "Socket's create failed", e);
         }
     }
 
@@ -36,6 +38,8 @@ public class BluetoothDeviceConnector extends Thread{
             // Connect to the remote device through the socket. This call blocks
             // until it succeeds or throws an exception.
             bluetoothSocket.connect();
+            BluetoothDevice device = BluetoothApplicationContext.getInstance().getCurrentDevice();
+            Log.i(TAG, "Connected to device:" + device.getName());
             EventBus.getDefault().post(new OpenConnectionEvent());
         } catch (IOException connectException) {
             // Unable to connect; close the socket and return.

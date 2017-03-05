@@ -5,4 +5,8 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <string name="speed_value">Speed</string>
+    <string name="delay_value">Delay</string>
+    <string name="save_configuration">Save</string>
 </resources>
