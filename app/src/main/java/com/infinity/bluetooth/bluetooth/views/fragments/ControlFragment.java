@@ -23,10 +23,10 @@ import org.greenrobot.eventbus.EventBus;
 
 public class ControlFragment extends Fragment{
 
-    public static final String UP = "0";
-    public static final String DOWN = "1";
-    public static final String LEFT = "2";
-    public static final String RIGHT = "3";
+    public static final String UP = "W";
+    public static final String DOWN = "S";
+    public static final String LEFT = "A";
+    public static final String RIGHT = "D";
 
 
     @Override

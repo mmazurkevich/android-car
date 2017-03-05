@@ -11,24 +11,23 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentTop="true"
         android:layout_marginRight="6dip"
-        android:contentDescription="TODO"
-        android:src="@drawable/ic_menu_camera" />
+        android:src="@drawable/ic_phone_android" />
 
     <TextView
         android:id="@+id/deviceMac"
-        android:layout_width="fill_parent"
+        android:text="DFDGFGDfg"
+        android:layout_width="wrap_content"
         android:layout_height="26dip"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_toRightOf="@id/icon"
         android:ellipsize="marquee"
-        android:singleLine="true"
-        android:text="Description"
         android:textSize="12sp" />
 
     <TextView
         android:id="@+id/deviceName"
-        android:layout_width="fill_parent"
+        android:text="DFDGFGDfg"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/deviceMac"
         android:layout_alignParentRight="true"
@@ -36,7 +35,16 @@
         android:layout_alignWithParentIfMissing="true"
         android:layout_toRightOf="@id/icon"
         android:gravity="center_vertical"
-        android:text="Example application"
         android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="6dip"
+        android:src="@drawable/ic_keyboard_arrow_right"
+        android:layout_toRightOf="@id/deviceName"/>
 
 </RelativeLayout>
