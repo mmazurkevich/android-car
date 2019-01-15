@@ -21,11 +21,14 @@ import android.view.MenuItem;
 import com.infinity.bluetooth.bluetooth.events.DeviceDiscoveryEvent;
 import com.infinity.bluetooth.bluetooth.events.EnableBluetoothEvent;
 import com.infinity.bluetooth.bluetooth.events.PairedDevicesEvent;
+import com.infinity.bluetooth.bluetooth.views.fragments.ControlFragment;
 import com.infinity.bluetooth.bluetooth.views.fragments.MainFragment;
 import com.infinity.bluetooth.bluetooth.views.receiver.BluetoothBroadcastReceiver;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+
+import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -54,6 +57,11 @@ public class MainActivity extends AppCompatActivity
 
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+//
+//        ControlFragment deviceControlFragment = new ControlFragment();
+//        fragmentTransaction.add(R.id.fragment_container, deviceControlFragment, "CONTROL_FRAGMENT");
+//        fragmentTransaction.commit();
+
         MainFragment mainFragment = new MainFragment();
         fragmentTransaction.add(R.id.fragment_container, mainFragment, "MAIN_FRAGMENT");
         fragmentTransaction.commit();
