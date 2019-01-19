@@ -56,7 +56,7 @@ public class BluetoothService {
         OutputStream outputStream;
         try {
             outputStream = applicationContext.getBluetoothSocket().getOutputStream();
-            outputStream.write(messageEvent.getMessage().getBytes());
+            outputStream.write(messageEvent.getMessage());
         } catch (IOException connectException) {
             EventBus.getDefault().post(new CloseConnectionEvent());
         }

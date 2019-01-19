@@ -32,7 +32,12 @@ public class ControlFragment extends Fragment{
             @Override
             public void onMove(int angle, int strength) {
                 Log.d(TAG, "Angle: " + angle + " Strength: " + strength);
-                EventBus.getDefault().post(new SendMessageEvent(angle + "/" + strength));
+                if (angle == 0) {
+                    EventBus.getDefault().post(new SendMessageEvent(0));
+                } else {
+                    EventBus.getDefault().post(new SendMessageEvent(angle/2));
+                }
+                EventBus.getDefault().post(new SendMessageEvent(strength));
             }
         });
         return view;
